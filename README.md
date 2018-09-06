@@ -1,0 +1,1 @@
+# org.ynov.b2.stratego.server
