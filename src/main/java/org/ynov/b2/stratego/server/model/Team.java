@@ -22,6 +22,8 @@ import lombok.Setter;
 @Entity
 public class Team extends SuperEntity {
 
+	private static final long serialVersionUID = 1L;
+
 	@OneToMany(mappedBy = "team")
 	private Set<Player> players;
 

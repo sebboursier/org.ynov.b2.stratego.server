@@ -20,6 +20,8 @@ import lombok.Setter;
 @Entity
 public class Move extends SuperEntity {
 
+	private static final long serialVersionUID = 1L;
+
 	@ManyToOne
 	private Player player;
 

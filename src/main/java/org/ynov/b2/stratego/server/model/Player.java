@@ -27,6 +27,8 @@ import lombok.Setter;
 @Entity
 public class Player extends SuperEntity {
 
+	private static final long serialVersionUID = 1L;
+
 	private int index;
 
 	@ManyToOne

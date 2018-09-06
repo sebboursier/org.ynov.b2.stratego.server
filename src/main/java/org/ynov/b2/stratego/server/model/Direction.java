@@ -3,10 +3,13 @@
  */
 package org.ynov.b2.stratego.server.model;
 
+import lombok.Getter;
+
 /**
  * @author sebboursier
  *
  */
+@Getter
 public enum Direction {
 
 	HAUT(0, 1),
