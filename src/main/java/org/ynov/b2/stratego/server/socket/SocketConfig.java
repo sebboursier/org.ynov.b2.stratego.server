@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.ynov.b2.stratego.server.config;
+package org.ynov.b2.stratego.server.socket;
 
 import java.util.List;
 

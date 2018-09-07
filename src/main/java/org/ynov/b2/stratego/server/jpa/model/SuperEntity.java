@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.ynov.b2.stratego.server.model;
+package org.ynov.b2.stratego.server.jpa.model;
 
 import java.io.Serializable;
 

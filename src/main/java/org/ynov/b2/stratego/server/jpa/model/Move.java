@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.ynov.b2.stratego.server.model;
+package org.ynov.b2.stratego.server.jpa.model;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -21,6 +21,10 @@ import lombok.Setter;
 public class Move extends SuperEntity {
 
 	private static final long serialVersionUID = 1L;
+
+	private int turn;
+
+	private boolean valid;
 
 	@ManyToOne
 	private Player player;

@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.ynov.b2.stratego.server.config;
+package org.ynov.b2.stratego.server.jpa;
 
 import java.util.HashMap;
 
@@ -24,7 +24,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  *
  */
 @Configuration
-@EnableJpaRepositories(basePackages = "org.ynov.b2.stratego.server.repository", entityManagerFactoryRef = "strategoEntityManager", transactionManagerRef = "strategoTransactionManager")
+@EnableJpaRepositories(basePackages = "org.ynov.b2.stratego.server.jpa.repository", entityManagerFactoryRef = "strategoEntityManager", transactionManagerRef = "strategoTransactionManager")
 public class JpaConfig {
 
 	@Autowired
@@ -47,7 +47,7 @@ public class JpaConfig {
 	public LocalContainerEntityManagerFactoryBean strategoEntityManager() {
 		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
 		em.setDataSource(strategoDataSource());
-		em.setPackagesToScan(new String[] { "org.ynov.b2.stratego.server.model" });
+		em.setPackagesToScan(new String[] { "org.ynov.b2.stratego.server.jpa.model" });
 
 		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
 		em.setJpaVendorAdapter(vendorAdapter);

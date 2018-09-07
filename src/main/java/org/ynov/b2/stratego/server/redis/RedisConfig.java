@@ -1,4 +1,4 @@
-package org.ynov.b2.stratego.server.config;
+package org.ynov.b2.stratego.server.redis;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
