@@ -4,7 +4,6 @@
 package org.ynov.b2.stratego.server;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurerAdapter;
 
@@ -13,7 +12,6 @@ import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurerAdapt
  *
  */
 @SpringBootApplication
-@EnableAutoConfiguration
 public class Application extends RepositoryRestConfigurerAdapter {
 
 	public static void main(String[] args) {

@@ -6,9 +6,9 @@ package org.ynov.b2.stratego.server.model;
 import java.util.Date;
 import java.util.Set;
 
-import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
@@ -40,7 +40,7 @@ public class Game extends SuperEntity {
 	@OneToOne
 	private Player winner;
 
-	@Column
+	@Lob
 	@Convert(converter = JsonArrayConverter.class)
-	private Pions[][] board;
+	private Pion[][] board;
 }

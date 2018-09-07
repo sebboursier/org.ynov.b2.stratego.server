@@ -5,9 +5,9 @@ package org.ynov.b2.stratego.server.model;
 
 import java.util.Set;
 
-import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
@@ -29,7 +29,7 @@ public class Player extends SuperEntity {
 
 	private static final long serialVersionUID = 1L;
 
-	private int index;
+	private int num;
 
 	@ManyToOne
 	private Game game;
@@ -37,9 +37,9 @@ public class Player extends SuperEntity {
 	@ManyToOne
 	private Team team;
 
-	@Column
+	@Lob
 	@Convert(converter = JsonArrayConverter.class)
-	private Pions[][] pions;
+	private PionType[][] pions;
 
 	@OneToMany(mappedBy = "player")
 	private Set<Move> moves;

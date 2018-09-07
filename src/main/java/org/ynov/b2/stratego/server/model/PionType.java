@@ -10,7 +10,7 @@ import lombok.Getter;
  *
  */
 @Getter
-public enum Pions {
+public enum PionType {
 
 	MARECHAL(10, 1),
 
@@ -42,7 +42,7 @@ public enum Pions {
 
 	private final int nb;
 
-	private Pions(final int force, final int nb) {
+	private PionType(final int force, final int nb) {
 		this.force = force;
 		this.nb = nb;
 	}
