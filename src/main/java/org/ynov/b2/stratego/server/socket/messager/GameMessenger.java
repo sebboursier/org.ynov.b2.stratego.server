@@ -16,6 +16,8 @@ import org.ynov.b2.stratego.server.jpa.repository.MoveRepository;
 import org.ynov.b2.stratego.server.jpa.repository.PlayerRepository;
 import org.ynov.b2.stratego.server.service.StrategoService;
 import org.ynov.b2.stratego.server.socket.model.Turn;
+import org.ynov.b2.stratego.server.util.exception.NotMyTurnException;
+import org.ynov.b2.stratego.server.util.exception.TurnException;
 
 /**
  * @author sebboursier
@@ -45,15 +47,21 @@ public class GameMessenger {
 		move.setTurn(player.getGame().getTurn());
 		move.setPlayer(player);
 
-		if (strategoService.proceedTurn(move)) {
-			final Game game = player.getGame();
-			simpMessagingTemplate.convertAndSend("/listen/game/" + player.getGame().getId(), new Turn(move));
-			game.setTurn(game.getTurn() + 1);
-			gameRepository.save(game);
-			return moveRepository.save(move);
+		try {
+			strategoService.proceedTurn(move);
+			move.setValid(true);
+		} catch (NotMyTurnException e) {
+			return null;
+		} catch (TurnException e) {
+			move.setValid(false);
 		}
 
-		return null;
+		moveRepository.save(move);
+		final Game game = player.getGame();
+		simpMessagingTemplate.convertAndSend("/listen/game/" + player.getGame().getId(), new Turn(move));
+		game.setTurn(game.getTurn() + 1);
+		gameRepository.save(game);
+		return moveRepository.save(move);
 	}
 
 }

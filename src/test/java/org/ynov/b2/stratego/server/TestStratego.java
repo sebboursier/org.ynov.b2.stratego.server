@@ -23,9 +23,11 @@ import org.ynov.b2.stratego.server.jpa.repository.PlayerRepository;
 import org.ynov.b2.stratego.server.jpa.repository.TeamRepository;
 import org.ynov.b2.stratego.server.redis.repository.TeamInLobbyRepository;
 import org.ynov.b2.stratego.server.service.BouchonService;
+import org.ynov.b2.stratego.server.service.StrategoService;
 import org.ynov.b2.stratego.server.socket.messager.GameMessenger;
 import org.ynov.b2.stratego.server.socket.messager.LobbyMessager;
 import org.ynov.b2.stratego.server.socket.model.StartGame;
+import org.ynov.b2.stratego.server.util.FightResult;
 
 /**
  * @author sebboursier
@@ -40,6 +42,9 @@ public class TestStratego {
 
 	@Autowired
 	private GameMessenger gameMessenger;
+
+	@Autowired
+	private StrategoService strategoService;
 
 	@Autowired
 	private TeamInLobbyRepository teamInLobbyRepository;
@@ -76,6 +81,35 @@ public class TestStratego {
 	}
 
 	@Test
+	public void testFight() {
+		FightResult result = null;
+
+		result = strategoService.proceedFight(PionType.ESPION, PionType.MARECHAL);
+		Assert.assertEquals(FightResult.WIN, result);
+
+		result = strategoService.proceedFight(PionType.MARECHAL, PionType.ESPION);
+		Assert.assertEquals(FightResult.WIN, result);
+
+		result = strategoService.proceedFight(PionType.DEMINEUR, PionType.BOMBE);
+		Assert.assertEquals(FightResult.WIN, result);
+
+		result = strategoService.proceedFight(PionType.LIEUTENANT, PionType.BOMBE);
+		Assert.assertEquals(FightResult.LOOSE, result);
+
+		result = strategoService.proceedFight(PionType.SERGENT, PionType.GENERAL);
+		Assert.assertEquals(FightResult.LOOSE, result);
+
+		result = strategoService.proceedFight(PionType.COLONEL, PionType.COMMANDANT);
+		Assert.assertEquals(FightResult.WIN, result);
+
+		result = strategoService.proceedFight(PionType.CAPITAINE, PionType.CAPITAINE);
+		Assert.assertEquals(FightResult.BOTH, result);
+
+		result = strategoService.proceedFight(PionType.LIEUTENANT, PionType.FLAG);
+		Assert.assertEquals(FightResult.VICTORY, result);
+	}
+
+	@Test
 	@Transactional
 	public void testLobby() {
 		final PionType[][] pionsOne = bouchonService.generateStarter();
@@ -109,7 +143,7 @@ public class TestStratego {
 
 	@Test
 	@Transactional
-	public void testPlay() {
+	public void testPlayNotValid() {
 		final PionType[][] pionsOne = bouchonService.generateStarter();
 		lobbyMessager.enter(idOne, pionsOne);
 		final PionType[][] pionsTwo = bouchonService.generateStarter();
@@ -118,5 +152,21 @@ public class TestStratego {
 		Move result = gameMessenger.play(startGames[0].getIdPlayer(), new Move(0, 0, Direction.HAUT, 1));
 
 		Assert.assertNotNull(result);
+		Assert.assertFalse(result.isValid());
 	}
+
+	@Test
+	@Transactional
+	public void testPlayValid() {
+		final PionType[][] pionsOne = bouchonService.generateStarter();
+		lobbyMessager.enter(idOne, pionsOne);
+		final PionType[][] pionsTwo = bouchonService.generateStarter();
+		final StartGame[] startGames = lobbyMessager.enter(idTwo, pionsTwo);
+
+		Move result = gameMessenger.play(startGames[0].getIdPlayer(), new Move(0, 3, Direction.HAUT, 1));
+
+		Assert.assertNotNull(result);
+		Assert.assertTrue(result.isValid());
+	}
+
 }
