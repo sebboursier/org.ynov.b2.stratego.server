@@ -16,11 +16,14 @@ import lombok.Setter;
 @NoArgsConstructor
 public class StartGame {
 
+	private Integer idGame;
+
 	private Integer idPlayer;
 
 	private int num;
 
-	public StartGame(final Integer idPlayer, final int num) {
+	public StartGame(final Integer idGame, final Integer idPlayer, final int num) {
+		this.idGame = idGame;
 		this.idPlayer = idPlayer;
 		this.num = num;
 	}

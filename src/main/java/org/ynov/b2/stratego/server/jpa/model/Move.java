@@ -37,4 +37,11 @@ public class Move extends SuperEntity {
 
 	private int nb;
 
+	public Move(int x, int y, final Direction direction, int nb) {
+		this.x = x;
+		this.y = y;
+		this.direction = direction;
+		this.nb = nb;
+	}
+
 }

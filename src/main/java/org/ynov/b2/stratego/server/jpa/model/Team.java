@@ -27,4 +27,9 @@ public class Team extends SuperEntity {
 	@OneToMany(mappedBy = "team")
 	private Set<Player> players;
 
+	private String name;
+
+	private String studentOne;
+
+	private String studentTwo;
 }

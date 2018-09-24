@@ -31,6 +31,8 @@ public class Player extends SuperEntity {
 
 	private int num;
 
+	private int nbFault;
+
 	@ManyToOne
 	private Game game;
 

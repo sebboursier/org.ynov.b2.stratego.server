@@ -50,7 +50,7 @@ public class LobbyMessager {
 	private StrategoService strategoService;
 
 	@MessageMapping("/lobby/{idTeam}")
-	public Integer enter(@DestinationVariable Integer idTeam, PionType[][] pions) {
+	public StartGame[] enter(@DestinationVariable Integer idTeam, PionType[][] pions) {
 		TeamInLobby teamInLobby = teamInLobbyRepository.getFirst();
 
 		if (teamInLobby == null) {
@@ -85,13 +85,15 @@ public class LobbyMessager {
 		game = gameRepository.save(game);
 		strategoService.startGame(game.getId());
 
-		simpMessagingTemplate.convertAndSend("/listen/lobby/" + teamInLobby.getId(),
-				new StartGame(playerOne.getId(), 0));
-		simpMessagingTemplate.convertAndSend("/listen/lobby/" + idTeam, new StartGame(playerTwo.getId(), 1));
+		final StartGame startOne = new StartGame(game.getId(), playerOne.getId(), 0);
+		simpMessagingTemplate.convertAndSend("/listen/lobby/" + teamInLobby.getId(), startOne);
+
+		final StartGame startTwo = new StartGame(game.getId(), playerTwo.getId(), 1);
+		simpMessagingTemplate.convertAndSend("/listen/lobby/" + idTeam, startTwo);
 
 		teamInLobbyRepository.delete(teamInLobby);
 
-		return game.getId();
+		return new StartGame[] { startOne, startTwo };
 	}
 
 }
