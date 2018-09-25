@@ -29,6 +29,8 @@ public class Team extends SuperEntity {
 
 	private String name;
 
+	private String groupe;
+
 	private String studentOne;
 
 	private String studentTwo;

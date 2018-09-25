@@ -80,6 +80,8 @@ public class StrategoService {
 			} else if (pion.getNum().equals(target.getNum())) {
 				throw new TurnException();
 			} else {
+				pion.setRevelated(true);
+				target.setRevelated(true);
 				switch (proceedFight(pion.getType(), target.getType())) {
 				case WIN:
 					board[targetX][targetY] = pion;

@@ -13,7 +13,7 @@ import javax.persistence.Lob;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
-import org.ynov.b2.stratego.server.jpa.JsonArrayConverter;
+import org.ynov.b2.stratego.server.util.converter.PionArrayConverter;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,7 +44,7 @@ public class Game extends SuperEntity {
 	private Player winner;
 
 	@Lob
-	@Convert(converter = JsonArrayConverter.class)
+	@Convert(converter = PionArrayConverter.class)
 	private Pion[][] board;
 
 }

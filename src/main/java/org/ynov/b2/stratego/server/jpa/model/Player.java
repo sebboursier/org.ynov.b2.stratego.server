@@ -11,7 +11,7 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-import org.ynov.b2.stratego.server.jpa.JsonArrayConverter;
+import org.ynov.b2.stratego.server.util.converter.PionTypeArrayConverter;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,7 +40,7 @@ public class Player extends SuperEntity {
 	private Team team;
 
 	@Lob
-	@Convert(converter = JsonArrayConverter.class)
+	@Convert(converter = PionTypeArrayConverter.class)
 	private PionType[][] pions;
 
 	@OneToMany(mappedBy = "player")
