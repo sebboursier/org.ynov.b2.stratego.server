@@ -128,6 +128,16 @@ public class StrategoService {
 			}
 		}
 
+		final Pion impassable = new Pion(-1, PionType.IMPASSABLE);
+		pions[2][4] = impassable;
+		pions[3][4] = impassable;
+		pions[2][5] = impassable;
+		pions[3][5] = impassable;
+		pions[6][4] = impassable;
+		pions[7][4] = impassable;
+		pions[6][5] = impassable;
+		pions[7][5] = impassable;
+
 		gameRepository.save(game);
 	}
 

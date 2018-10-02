@@ -3,6 +3,8 @@
  */
 package org.ynov.b2.stratego.server.jpa.model;
 
+import java.util.Date;
+
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
@@ -37,11 +39,14 @@ public class Move extends SuperEntity {
 
 	private int nb;
 
+	private Date date;
+
 	public Move(int x, int y, final Direction direction, int nb) {
 		this.x = x;
 		this.y = y;
 		this.direction = direction;
 		this.nb = nb;
+		this.date = new Date();
 	}
 
 }
