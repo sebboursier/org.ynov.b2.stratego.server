@@ -5,6 +5,7 @@ package org.ynov.b2.stratego.server.socket.model;
 
 import org.ynov.b2.stratego.server.jpa.model.Direction;
 import org.ynov.b2.stratego.server.jpa.model.Move;
+import org.ynov.b2.stratego.server.jpa.model.MoveResult;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,7 +30,7 @@ public class Turn {
 
 	private int nb;
 
-	private boolean valid;
+	private MoveResult result;
 
 	public Turn(final Move move) {
 		turn = move.getTurn();
@@ -37,7 +38,7 @@ public class Turn {
 		y = move.getY();
 		direction = move.getDirection();
 		nb = move.getNb();
-		valid = move.isValid();
+		result = move.getResult();
 	}
 
 }

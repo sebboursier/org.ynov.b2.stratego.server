@@ -34,6 +34,9 @@ public class Game extends SuperEntity {
 	@OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
 	private Set<Player> players;
 
+	@OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
+	private Set<Move> moves;
+
 	private Date dateStarted;
 
 	private Date dateEnded;

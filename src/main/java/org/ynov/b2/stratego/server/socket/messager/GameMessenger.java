@@ -10,6 +10,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.ynov.b2.stratego.server.jpa.model.Game;
 import org.ynov.b2.stratego.server.jpa.model.Move;
+import org.ynov.b2.stratego.server.jpa.model.MoveResult;
 import org.ynov.b2.stratego.server.jpa.model.Player;
 import org.ynov.b2.stratego.server.jpa.repository.GameRepository;
 import org.ynov.b2.stratego.server.jpa.repository.MoveRepository;
@@ -46,14 +47,14 @@ public class GameMessenger {
 		final Player player = playerRepository.getOne(idPlayer);
 		move.setTurn(player.getGame().getTurn());
 		move.setPlayer(player);
+		move.setGame(player.getGame());
 
 		try {
 			strategoService.proceedTurn(move);
-			move.setValid(true);
 		} catch (NotMyTurnException e) {
 			return null;
 		} catch (TurnException e) {
-			move.setValid(false);
+			move.setResult(MoveResult.FAIL);
 		}
 
 		moveRepository.save(move);

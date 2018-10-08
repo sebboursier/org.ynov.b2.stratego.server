@@ -50,9 +50,37 @@ public class TestController {
 
 		gameMessenger.play(startGames[0].getIdPlayer(), new Move(0, 3, Direction.HAUT, 1));
 		gameMessenger.play(startGames[1].getIdPlayer(), new Move(0, 6, Direction.BAS, 1));
+		gameMessenger.play(startGames[0].getIdPlayer(), new Move(0, 4, Direction.HAUT, 1));
+
+		gameMessenger.play(startGames[1].getIdPlayer(), new Move(1, 6, Direction.BAS, 1));
+		gameMessenger.play(startGames[0].getIdPlayer(), new Move(1, 3, Direction.HAUT, 1));
+		gameMessenger.play(startGames[1].getIdPlayer(), new Move(1, 5, Direction.BAS, 1));
+
+		gameMessenger.play(startGames[0].getIdPlayer(), new Move(4, 3, Direction.HAUT, 1));
+		gameMessenger.play(startGames[1].getIdPlayer(), new Move(4, 6, Direction.BAS, 1));
+		gameMessenger.play(startGames[0].getIdPlayer(), new Move(4, 4, Direction.HAUT, 1));
+
+		gameMessenger.play(startGames[1].getIdPlayer(), new Move(5, 6, Direction.BAS, 1));
+		gameMessenger.play(startGames[0].getIdPlayer(), new Move(5, 3, Direction.HAUT, 1));
+		gameMessenger.play(startGames[1].getIdPlayer(), new Move(5, 5, Direction.BAS, 1));
+
+		gameMessenger.play(startGames[0].getIdPlayer(), new Move(8, 3, Direction.HAUT, 1));
+		gameMessenger.play(startGames[1].getIdPlayer(), new Move(8, 6, Direction.BAS, 1));
+		gameMessenger.play(startGames[0].getIdPlayer(), new Move(8, 4, Direction.HAUT, 1));
+
+		gameMessenger.play(startGames[1].getIdPlayer(), new Move(9, 6, Direction.BAS, 1));
+		gameMessenger.play(startGames[0].getIdPlayer(), new Move(9, 3, Direction.HAUT, 1));
+		gameMessenger.play(startGames[1].getIdPlayer(), new Move(9, 5, Direction.BAS, 1));
 
 		final Game game = gameRepository.getOne(startGames[0].getIdGame());
 		game.setDateEnded(new Date());
+		// for (Pion[] column : game.getBoard()) {
+		// for (Pion pion : column) {
+		// if (pion != null) {
+		// pion.setRevelated(true);
+		// }
+		// }
+		// }
 		gameRepository.save(game);
 
 		return new ResponseEntity(HttpStatus.OK);

@@ -13,8 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.ynov.b2.stratego.server.jpa.model.Direction;
+import org.ynov.b2.stratego.server.jpa.model.FightResult;
 import org.ynov.b2.stratego.server.jpa.model.Game;
 import org.ynov.b2.stratego.server.jpa.model.Move;
+import org.ynov.b2.stratego.server.jpa.model.MoveResult;
 import org.ynov.b2.stratego.server.jpa.model.PionType;
 import org.ynov.b2.stratego.server.jpa.model.Team;
 import org.ynov.b2.stratego.server.jpa.repository.GameRepository;
@@ -27,7 +29,6 @@ import org.ynov.b2.stratego.server.service.StrategoService;
 import org.ynov.b2.stratego.server.socket.messager.GameMessenger;
 import org.ynov.b2.stratego.server.socket.messager.LobbyMessager;
 import org.ynov.b2.stratego.server.socket.model.StartGame;
-import org.ynov.b2.stratego.server.util.FightResult;
 
 /**
  * @author sebboursier
@@ -149,24 +150,25 @@ public class TestStratego {
 		final PionType[][] pionsTwo = bouchonService.generateStarter();
 		final StartGame[] startGames = lobbyMessager.enter(idTwo, pionsTwo);
 
-		Move result = gameMessenger.play(startGames[0].getIdPlayer(), new Move(0, 0, Direction.HAUT, 1));
+		Move move = gameMessenger.play(startGames[0].getIdPlayer(), new Move(0, 0, Direction.HAUT, 1));
 
-		Assert.assertNotNull(result);
-		Assert.assertFalse(result.isValid());
+		Assert.assertNotNull(move);
+		Assert.assertEquals(MoveResult.FAIL, move.getResult());
 	}
 
 	@Test
 	@Transactional
 	public void testPlayValid() {
 		final PionType[][] pionsOne = bouchonService.generateStarter();
+		pionsOne[0][3] = PionType.SERGENT;
 		lobbyMessager.enter(idOne, pionsOne);
 		final PionType[][] pionsTwo = bouchonService.generateStarter();
 		final StartGame[] startGames = lobbyMessager.enter(idTwo, pionsTwo);
 
-		Move result = gameMessenger.play(startGames[0].getIdPlayer(), new Move(0, 3, Direction.HAUT, 1));
+		Move move = gameMessenger.play(startGames[0].getIdPlayer(), new Move(0, 3, Direction.HAUT, 1));
 
-		Assert.assertNotNull(result);
-		Assert.assertTrue(result.isValid());
+		Assert.assertNotNull(move);
+		Assert.assertEquals(MoveResult.MOVE, move.getResult());
 	}
 
 }

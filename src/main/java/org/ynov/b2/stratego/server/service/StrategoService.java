@@ -5,13 +5,14 @@ package org.ynov.b2.stratego.server.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.ynov.b2.stratego.server.jpa.model.FightResult;
 import org.ynov.b2.stratego.server.jpa.model.Game;
 import org.ynov.b2.stratego.server.jpa.model.Move;
+import org.ynov.b2.stratego.server.jpa.model.MoveResult;
 import org.ynov.b2.stratego.server.jpa.model.Pion;
 import org.ynov.b2.stratego.server.jpa.model.PionType;
 import org.ynov.b2.stratego.server.jpa.model.Player;
 import org.ynov.b2.stratego.server.jpa.repository.GameRepository;
-import org.ynov.b2.stratego.server.util.FightResult;
 import org.ynov.b2.stratego.server.util.exception.NotMyTurnException;
 import org.ynov.b2.stratego.server.util.exception.TurnException;
 
@@ -73,6 +74,7 @@ public class StrategoService {
 			final Pion target = board[targetX][targetY];
 
 			if (target == null) {
+				move.setResult(MoveResult.MOVE);
 				board[targetX][targetY] = pion;
 				board[move.getX()][move.getY()] = null;
 			} else if (target.getType().equals(PionType.IMPASSABLE)) {
@@ -80,9 +82,12 @@ public class StrategoService {
 			} else if (pion.getNum().equals(target.getNum())) {
 				throw new TurnException();
 			} else {
+				move.setResult(MoveResult.ATTACK);
 				pion.setRevelated(true);
 				target.setRevelated(true);
-				switch (proceedFight(pion.getType(), target.getType())) {
+				FightResult fightResult = proceedFight(pion.getType(), target.getType());
+				move.setFight(fightResult);
+				switch (fightResult) {
 				case WIN:
 					board[targetX][targetY] = pion;
 					board[move.getX()][move.getY()] = null;

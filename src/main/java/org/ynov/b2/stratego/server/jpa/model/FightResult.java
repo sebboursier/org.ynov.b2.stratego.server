@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.ynov.b2.stratego.server.util;
+package org.ynov.b2.stratego.server.jpa.model;
 
 /**
  * @author sebboursier

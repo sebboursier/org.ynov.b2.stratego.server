@@ -6,6 +6,8 @@ package org.ynov.b2.stratego.server.jpa.model;
 import java.util.Date;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 
 import lombok.Getter;
@@ -26,10 +28,17 @@ public class Move extends SuperEntity {
 
 	private int turn;
 
-	private boolean valid;
+	@Enumerated(EnumType.STRING)
+	private MoveResult result;
+
+	@Enumerated(EnumType.STRING)
+	private FightResult fight;
 
 	@ManyToOne
 	private Player player;
+
+	@ManyToOne
+	private Game game;
 
 	private int x;
 
