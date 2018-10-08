@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.ynov.b2.stratego.server;
+package org.ynov.b2.stratego.server.config;
 
 import java.util.Set;
 
@@ -59,6 +59,7 @@ public class AppConfig extends RepositoryRestConfigurerAdapter {
 		config.addAllowedMethod(HttpMethod.DELETE);
 		config.addAllowedMethod(HttpMethod.PUT);
 		config.addAllowedMethod(HttpMethod.POST);
+		config.addAllowedMethod(HttpMethod.GET);
 		source.registerCorsConfiguration("/**", config);
 		FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
 		bean.setOrder(0);
