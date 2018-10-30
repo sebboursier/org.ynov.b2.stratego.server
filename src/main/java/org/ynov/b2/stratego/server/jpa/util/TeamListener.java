@@ -18,7 +18,7 @@ public class TeamListener {
 	@PrePersist
 	public void setLastUpdate(Team team) {
 		if (team.getUuid() == null) {
-			team.setUuid(UUID.randomUUID());
+			team.setUuid(UUID.randomUUID().toString());
 		}
 	}
 

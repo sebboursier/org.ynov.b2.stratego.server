@@ -3,6 +3,8 @@
  */
 package org.ynov.b2.stratego.server;
 
+import java.util.UUID;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,16 +36,19 @@ public class TestRedis {
 
 	@Test
 	public void testRedisBase() {
-		TeamInLobby bean = new TeamInLobby();
-		bean.setId(1);
-		PionType[][] pions = new PionType[][] { { PionType.FLAG, PionType.BOMBE }, { PionType.BOMBE, PionType.FLAG } };
+		final TeamInLobby bean = new TeamInLobby();
+		final UUID uuid = UUID.randomUUID();
+		bean.setUuid(uuid.toString());
+		final PionType[][] pions = new PionType[][] { { PionType.FLAG, PionType.BOMBE },
+				{ PionType.BOMBE, PionType.FLAG } };
 		bean.setStarter(new Gson().toJson(pions));
 		teamInLobbyRepository.save(bean);
 
-		bean = teamInLobbyRepository.findById(1).get();
-		pions = new Gson().fromJson(bean.getStarter(), PionType[][].class);
-		Assert.assertEquals(PionType.FLAG, pions[0][0]);
-		Assert.assertEquals(PionType.BOMBE, pions[0][1]);
+		final TeamInLobby result = teamInLobbyRepository.findById(uuid.toString()).orElse(null);
+		Assert.assertNotNull(result);
+		final PionType[][] resPions = new Gson().fromJson(result.getStarter(), PionType[][].class);
+		Assert.assertEquals(PionType.FLAG, resPions[0][0]);
+		Assert.assertEquals(PionType.BOMBE, resPions[0][1]);
 	}
 
 }

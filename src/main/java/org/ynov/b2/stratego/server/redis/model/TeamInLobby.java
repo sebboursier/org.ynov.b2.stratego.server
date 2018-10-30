@@ -21,7 +21,7 @@ import lombok.Setter;
 public class TeamInLobby {
 
 	@Id
-	private Integer id;
+	private String uuid;
 
 	private Long dateCreated;
 

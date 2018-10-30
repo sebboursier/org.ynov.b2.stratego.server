@@ -20,6 +20,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Turn {
 
+	private Integer idGame;
+
 	private int turn;
 
 	private int x;
@@ -39,6 +41,7 @@ public class Turn {
 		direction = move.getDirection();
 		nb = move.getNb();
 		result = move.getResult();
+		idGame = move.getGame().getId();
 	}
 
 }

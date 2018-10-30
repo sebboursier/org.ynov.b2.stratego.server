@@ -3,6 +3,8 @@
  */
 package org.ynov.b2.stratego.server.service;
 
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.ynov.b2.stratego.server.jpa.model.FightResult;
@@ -26,13 +28,19 @@ public class StrategoService {
 	@Autowired
 	private GameRepository gameRepository;
 
+	public void proceedFail(Move move) {
+		move.setResult(MoveResult.FAIL);
+		move.getPlayer().fault();
+		if (move.getPlayer().getNbFault() >= 5) {
+			move.setResult(MoveResult.DEFEAT);
+		}
+	}
+
 	public FightResult proceedFight(final PionType attacker, final PionType defender) {
 		if (attacker.equals(defender)) {
 			return FightResult.BOTH;
 		}
 		switch (defender) {
-		case FLAG:
-			return FightResult.VICTORY;
 		case BOMBE:
 			if (attacker.equals(PionType.DEMINEUR)) {
 				return FightResult.WIN;
@@ -71,7 +79,12 @@ public class StrategoService {
 
 			final int targetX = move.getX() + move.getDirection().getX() * move.getNb();
 			final int targetY = move.getY() + move.getDirection().getY() * move.getNb();
-			final Pion target = board[targetX][targetY];
+			Pion target = null;
+			try {
+				target = board[targetX][targetY];
+			} catch (IndexOutOfBoundsException e) {
+				throw new TurnException();
+			}
 
 			if (target == null) {
 				move.setResult(MoveResult.MOVE);
@@ -89,6 +102,9 @@ public class StrategoService {
 				move.setFight(fightResult);
 				switch (fightResult) {
 				case WIN:
+					if (board[targetX][targetY].getType().equals(PionType.FLAG)) {
+						move.setResult(MoveResult.VICTORY);
+					}
 					board[targetX][targetY] = pion;
 					board[move.getX()][move.getY()] = null;
 					break;
@@ -98,9 +114,6 @@ public class StrategoService {
 				case BOTH:
 					board[targetX][targetY] = null;
 					board[move.getX()][move.getY()] = null;
-					break;
-				case VICTORY:
-					// TODO
 					break;
 				}
 			}
@@ -112,8 +125,7 @@ public class StrategoService {
 		gameRepository.save(game);
 	}
 
-	public void startGame(final Integer id) {
-		final Game game = gameRepository.getOne(id);
+	public Game startGame(final Game game) {
 		final Pion[][] pions = new Pion[10][10];
 		game.setBoard(pions);
 
@@ -143,7 +155,24 @@ public class StrategoService {
 		pions[6][5] = impassable;
 		pions[7][5] = impassable;
 
-		gameRepository.save(game);
+		return gameRepository.save(game);
+	}
+
+	public void watchEnd(Game game, Move move) {
+		if (move.getResult().equals(MoveResult.VICTORY)) {
+			game.setWinner(move.getPlayer());
+			game.setDateEnded(new Date());
+		}
+
+		if (move.getResult().equals(MoveResult.DEFEAT)) {
+			for (Player player : game.getPlayers()) {
+				if (player.getNum() != move.getPlayer().getNum()) {
+					game.setWinner(player);
+				}
+			}
+			game.setDateEnded(new Date());
+		}
+
 	}
 
 }

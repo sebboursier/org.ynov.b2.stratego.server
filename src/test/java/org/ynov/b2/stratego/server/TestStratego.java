@@ -18,7 +18,9 @@ import org.ynov.b2.stratego.server.jpa.model.Game;
 import org.ynov.b2.stratego.server.jpa.model.Move;
 import org.ynov.b2.stratego.server.jpa.model.MoveResult;
 import org.ynov.b2.stratego.server.jpa.model.PionType;
+import org.ynov.b2.stratego.server.jpa.model.Player;
 import org.ynov.b2.stratego.server.jpa.model.Team;
+import org.ynov.b2.stratego.server.jpa.model.TeamGroupe;
 import org.ynov.b2.stratego.server.jpa.repository.GameRepository;
 import org.ynov.b2.stratego.server.jpa.repository.MoveRepository;
 import org.ynov.b2.stratego.server.jpa.repository.PlayerRepository;
@@ -26,8 +28,8 @@ import org.ynov.b2.stratego.server.jpa.repository.TeamRepository;
 import org.ynov.b2.stratego.server.redis.repository.TeamInLobbyRepository;
 import org.ynov.b2.stratego.server.service.BouchonService;
 import org.ynov.b2.stratego.server.service.StrategoService;
-import org.ynov.b2.stratego.server.socket.messager.GameMessenger;
-import org.ynov.b2.stratego.server.socket.messager.LobbyMessager;
+import org.ynov.b2.stratego.server.socket.messenger.GameMessenger;
+import org.ynov.b2.stratego.server.socket.messenger.LobbyMessenger;
 import org.ynov.b2.stratego.server.socket.model.StartGame;
 
 /**
@@ -39,7 +41,7 @@ import org.ynov.b2.stratego.server.socket.model.StartGame;
 public class TestStratego {
 
 	@Autowired
-	private LobbyMessager lobbyMessager;
+	private LobbyMessenger lobbyMessager;
 
 	@Autowired
 	private GameMessenger gameMessenger;
@@ -65,20 +67,37 @@ public class TestStratego {
 	@Autowired
 	private BouchonService bouchonService;
 
-	private Integer idOne;
+	private String uuidOne;
 
-	private Integer idTwo;
+	private String uuidTwo;
 
 	@Before
 	public void before() {
 		teamInLobbyRepository.deleteAll();
+		moveRepository.deleteAll();
 		playerRepository.deleteAll();
 		gameRepository.deleteAll();
 		teamRepository.deleteAll();
-		moveRepository.deleteAll();
 
-		idOne = teamRepository.save(new Team()).getId();
-		idTwo = teamRepository.save(new Team()).getId();
+		uuidOne = teamRepository.save(new Team(-1, TeamGroupe.TEST, "TEST_1")).getUuid();
+		uuidTwo = teamRepository.save(new Team(-2, TeamGroupe.TEST, "TEST_2")).getUuid();
+	}
+
+	@Test
+	@Transactional
+	public void testDefeat() {
+		final PionType[][] pionsOne = bouchonService.generateStarter();
+		lobbyMessager.enter(uuidOne, pionsOne);
+		final PionType[][] pionsTwo = bouchonService.generateStarter();
+		final StartGame[] startGames = lobbyMessager.enter(uuidTwo, pionsTwo);
+
+		Move move = new Move();
+		for (int i = 0; i < 9; i++) {
+			Assert.assertNotEquals(MoveResult.DEFEAT, move.getResult());
+			final Integer idPlayer = startGames[i % 2].getIdPlayer();
+			move = gameMessenger.play(idPlayer, new Move(0, 0, Direction.BAS, 1));
+		}
+		Assert.assertEquals(MoveResult.DEFEAT, move.getResult());
 	}
 
 	@Test
@@ -107,7 +126,7 @@ public class TestStratego {
 		Assert.assertEquals(FightResult.BOTH, result);
 
 		result = strategoService.proceedFight(PionType.LIEUTENANT, PionType.FLAG);
-		Assert.assertEquals(FightResult.VICTORY, result);
+		Assert.assertEquals(FightResult.WIN, result);
 	}
 
 	@Test
@@ -115,11 +134,11 @@ public class TestStratego {
 	public void testLobby() {
 		final PionType[][] pionsOne = bouchonService.generateStarter();
 		pionsOne[1][1] = PionType.FLAG;
-		lobbyMessager.enter(idOne, pionsOne);
+		lobbyMessager.enter(uuidOne, pionsOne);
 
 		final PionType[][] pionsTwo = bouchonService.generateStarter();
 		pionsTwo[1][1] = PionType.BOMBE;
-		final Integer gameId = lobbyMessager.enter(idTwo, pionsTwo)[0].getIdGame();
+		final Integer gameId = lobbyMessager.enter(uuidTwo, pionsTwo)[0].getIdGame();
 
 		final Game game = gameRepository.getOne(gameId);
 
@@ -133,9 +152,9 @@ public class TestStratego {
 	@Transactional
 	public void testNotMyTurn() {
 		final PionType[][] pionsOne = bouchonService.generateStarter();
-		lobbyMessager.enter(idOne, pionsOne);
+		lobbyMessager.enter(uuidOne, pionsOne);
 		final PionType[][] pionsTwo = bouchonService.generateStarter();
-		final StartGame[] startGames = lobbyMessager.enter(idTwo, pionsTwo);
+		final StartGame[] startGames = lobbyMessager.enter(uuidTwo, pionsTwo);
 
 		Move result = gameMessenger.play(startGames[1].getIdPlayer(), new Move(0, 0, Direction.HAUT, 1));
 
@@ -146,9 +165,9 @@ public class TestStratego {
 	@Transactional
 	public void testPlayNotValid() {
 		final PionType[][] pionsOne = bouchonService.generateStarter();
-		lobbyMessager.enter(idOne, pionsOne);
+		lobbyMessager.enter(uuidOne, pionsOne);
 		final PionType[][] pionsTwo = bouchonService.generateStarter();
-		final StartGame[] startGames = lobbyMessager.enter(idTwo, pionsTwo);
+		final StartGame[] startGames = lobbyMessager.enter(uuidTwo, pionsTwo);
 
 		Move move = gameMessenger.play(startGames[0].getIdPlayer(), new Move(0, 0, Direction.HAUT, 1));
 
@@ -161,14 +180,31 @@ public class TestStratego {
 	public void testPlayValid() {
 		final PionType[][] pionsOne = bouchonService.generateStarter();
 		pionsOne[0][3] = PionType.SERGENT;
-		lobbyMessager.enter(idOne, pionsOne);
+		lobbyMessager.enter(uuidOne, pionsOne);
 		final PionType[][] pionsTwo = bouchonService.generateStarter();
-		final StartGame[] startGames = lobbyMessager.enter(idTwo, pionsTwo);
+		final StartGame[] startGames = lobbyMessager.enter(uuidTwo, pionsTwo);
 
 		Move move = gameMessenger.play(startGames[0].getIdPlayer(), new Move(0, 3, Direction.HAUT, 1));
 
 		Assert.assertNotNull(move);
 		Assert.assertEquals(MoveResult.MOVE, move.getResult());
+	}
+
+	@Test
+	@Transactional
+	public void testTeam() {
+		final PionType[][] pionsOne = bouchonService.generateStarter();
+		lobbyMessager.enter(uuidOne, pionsOne);
+		final PionType[][] pionsTwo = bouchonService.generateStarter();
+		final StartGame[] startGames = lobbyMessager.enter(uuidTwo, pionsTwo);
+
+		final Integer idGame = startGames[0].getIdGame();
+		final Game game = gameRepository.getOne(idGame);
+
+		Assert.assertEquals(2, game.getPlayers().size());
+		for (Player player : game.getPlayers()) {
+			Assert.assertNotNull(player.getTeam());
+		}
 	}
 
 }

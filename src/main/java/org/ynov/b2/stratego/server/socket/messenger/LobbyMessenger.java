@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.ynov.b2.stratego.server.socket.messager;
+package org.ynov.b2.stratego.server.socket.messenger;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -15,10 +15,11 @@ import org.ynov.b2.stratego.server.jpa.model.Game;
 import org.ynov.b2.stratego.server.jpa.model.PionType;
 import org.ynov.b2.stratego.server.jpa.model.Player;
 import org.ynov.b2.stratego.server.jpa.repository.GameRepository;
-import org.ynov.b2.stratego.server.jpa.repository.PlayerRepository;
 import org.ynov.b2.stratego.server.jpa.repository.TeamRepository;
 import org.ynov.b2.stratego.server.redis.model.TeamInLobby;
 import org.ynov.b2.stratego.server.redis.repository.TeamInLobbyRepository;
+import org.ynov.b2.stratego.server.service.BouchonService;
+import org.ynov.b2.stratego.server.service.IaService;
 import org.ynov.b2.stratego.server.service.StrategoService;
 import org.ynov.b2.stratego.server.socket.model.StartGame;
 
@@ -29,16 +30,13 @@ import com.google.gson.Gson;
  *
  */
 @Controller
-public class LobbyMessager {
+public class LobbyMessenger {
 
 	@Autowired
 	private GameRepository gameRepository;
 
 	@Autowired
 	private TeamRepository teamRepository;
-
-	@Autowired
-	private PlayerRepository playerRepository;
 
 	@Autowired
 	private TeamInLobbyRepository teamInLobbyRepository;
@@ -49,13 +47,19 @@ public class LobbyMessager {
 	@Autowired
 	private StrategoService strategoService;
 
-	@MessageMapping("/lobby/{idTeam}")
-	public StartGame[] enter(@DestinationVariable Integer idTeam, PionType[][] pions) {
+	@Autowired
+	private BouchonService bouchonService;
+
+	@Autowired
+	private IaService iaService;
+
+	@MessageMapping("/lobby/{uuidTeam}")
+	public StartGame[] enter(@DestinationVariable String uuidTeam, PionType[][] pions) {
 		TeamInLobby teamInLobby = teamInLobbyRepository.getFirst();
 
 		if (teamInLobby == null) {
 			teamInLobby = new TeamInLobby();
-			teamInLobby.setId(idTeam);
+			teamInLobby.setUuid(uuidTeam.toString());
 			teamInLobby.setDateCreated(new Date().getTime());
 			teamInLobby.setStarter(new Gson().toJson(pions));
 			teamInLobbyRepository.save(teamInLobby);
@@ -70,28 +74,59 @@ public class LobbyMessager {
 
 		Player playerOne = new Player();
 		playerOne.setNum(0);
-		playerOne.setTeam(teamRepository.getOne(teamInLobby.getId()));
+		playerOne.setTeam(teamRepository.findByUuid(teamInLobby.getUuid()));
 		playerOne.setPions(new Gson().fromJson(teamInLobby.getStarter(), PionType[][].class));
 		playerOne.setGame(game);
 		game.getPlayers().add(playerOne);
 
 		Player playerTwo = new Player();
 		playerTwo.setNum(1);
-		playerTwo.setTeam(teamRepository.getOne(idTeam));
+		playerTwo.setTeam(teamRepository.findByUuid(uuidTeam));
 		playerTwo.setPions(pions);
 		playerTwo.setGame(game);
 		game.getPlayers().add(playerTwo);
 
-		game = gameRepository.save(game);
-		strategoService.startGame(game.getId());
+		game = strategoService.startGame(game);
 
 		final StartGame startOne = new StartGame(game.getId(), playerOne.getId(), 0);
-		simpMessagingTemplate.convertAndSend("/listen/lobby/" + teamInLobby.getId(), startOne);
+		simpMessagingTemplate.convertAndSend("/listen/lobby/" + teamInLobby.getUuid(), startOne);
 
 		final StartGame startTwo = new StartGame(game.getId(), playerTwo.getId(), 1);
-		simpMessagingTemplate.convertAndSend("/listen/lobby/" + idTeam, startTwo);
+		simpMessagingTemplate.convertAndSend("/listen/lobby/" + uuidTeam, startTwo);
 
 		teamInLobbyRepository.delete(teamInLobby);
+
+		return new StartGame[] { startOne, startTwo };
+	}
+
+	@MessageMapping("/lobby/{uuidTeam}/test")
+	public StartGame[] enterTest(@DestinationVariable String uuidTeam, PionType[][] pions) {
+		Game game = new Game();
+		game.setTurn(0);
+		game.setDateStarted(new Date());
+		game.setPlayers(new HashSet<>());
+
+		Player playerOne = new Player();
+		playerOne.setNum(0);
+		playerOne.setTeam(teamRepository.findByUuid(uuidTeam));
+		playerOne.setPions(pions);
+		playerOne.setGame(game);
+		game.getPlayers().add(playerOne);
+
+		Player playerTwo = new Player();
+		playerTwo.setNum(1);
+		playerTwo.setTeam(teamRepository.getOne(-1));
+		playerTwo.setPions(bouchonService.generateStarter());
+		playerTwo.setGame(game);
+		game.getPlayers().add(playerTwo);
+
+		game = strategoService.startGame(game);
+
+		final StartGame startOne = new StartGame(game.getId(), playerOne.getId(), 0);
+		simpMessagingTemplate.convertAndSend("/listen/lobby/" + uuidTeam, startOne);
+
+		final StartGame startTwo = new StartGame(game.getId(), playerTwo.getId(), 1);
+		iaService.start(startTwo);
 
 		return new StartGame[] { startOne, startTwo };
 	}

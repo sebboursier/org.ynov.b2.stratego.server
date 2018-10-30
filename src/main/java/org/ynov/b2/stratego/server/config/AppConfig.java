@@ -60,7 +60,7 @@ public class AppConfig extends RepositoryRestConfigurerAdapter {
 		config.addAllowedMethod(HttpMethod.PUT);
 		config.addAllowedMethod(HttpMethod.POST);
 		config.addAllowedMethod(HttpMethod.GET);
-		source.registerCorsConfiguration("/**", config);
+		source.registerCorsConfiguration("/bean/**", config);
 		FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
 		bean.setOrder(0);
 		return bean;

@@ -14,7 +14,7 @@ import org.ynov.b2.stratego.server.redis.model.TeamInLobby;
  *
  */
 @Repository
-public interface TeamInLobbyRepository extends CrudRepository<TeamInLobby, Integer> {
+public interface TeamInLobbyRepository extends CrudRepository<TeamInLobby, String> {
 
 	public default TeamInLobby getFirst() {
 		List<TeamInLobby> avatarInLobbies = (List<TeamInLobby>) this.findAll();

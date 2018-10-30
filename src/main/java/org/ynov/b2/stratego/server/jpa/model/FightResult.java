@@ -13,8 +13,6 @@ public enum FightResult {
 
 	WIN,
 
-	BOTH,
-
-	VICTORY;
+	BOTH;
 
 }

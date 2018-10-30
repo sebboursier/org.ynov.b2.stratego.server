@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.ynov.b2.stratego.server.jpa.model.Direction;
+import org.ynov.b2.stratego.server.jpa.model.Move;
 import org.ynov.b2.stratego.server.jpa.model.PionType;
 
 /**
@@ -16,6 +18,12 @@ import org.ynov.b2.stratego.server.jpa.model.PionType;
  */
 @Service
 public class BouchonService {
+
+	public Move generateMove() {
+		final Move move = new Move((int) (Math.random() * 10), (int) (Math.random() * 10),
+				Direction.values()[(int) (Math.random() * 4)], 1);
+		return move;
+	}
 
 	public PionType[][] generateStarter() {
 		List<PionType> types = new ArrayList<>();

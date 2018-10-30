@@ -7,16 +7,14 @@ package org.ynov.b2.stratego.server.jpa.model;
  * @author sebboursier
  *
  */
-public enum MoveResult {
+public enum TeamGroupe {
 
-	ATTACK,
+	A,
 
-	MOVE,
+	B,
 
-	FAIL,
+	PEDA,
 
-	VICTORY,
-
-	DEFEAT;
+	TEST;
 
 }

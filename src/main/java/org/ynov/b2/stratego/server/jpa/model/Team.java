@@ -3,13 +3,16 @@
  */
 package org.ynov.b2.stratego.server.jpa.model;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
 import org.ynov.b2.stratego.server.jpa.util.TeamListener;
@@ -27,21 +30,35 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @EntityListeners(TeamListener.class)
-public class Team extends SuperEntity {
+public class Team {
 
 	private static final long serialVersionUID = 1L;
 
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private UUID uuid;
+	@Id
+	protected Integer id;
+
+	private String uuid;
 
 	@OneToMany(mappedBy = "team")
 	private Set<Player> players;
 
+	@OneToMany(mappedBy = "team", cascade = { CascadeType.ALL })
+	private Set<Etudiant> etudiants;
+
 	private String name;
 
-	private String groupe;
+	@Enumerated(EnumType.STRING)
+	private TeamGroupe groupe;
 
-	private String studentOne;
+	public Team(final Integer id, final TeamGroupe groupe, final Etudiant... etudiants) {
+		this.id = id;
+		this.groupe = groupe;
+		this.etudiants = new HashSet<>(Arrays.asList(etudiants));
+	}
 
-	private String studentTwo;
+	public Team(final Integer id, final TeamGroupe groupe, final String name) {
+		this.id = id;
+		this.groupe = groupe;
+		this.name = name;
+	}
 }

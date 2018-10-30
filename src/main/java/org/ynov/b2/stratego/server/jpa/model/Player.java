@@ -46,4 +46,8 @@ public class Player extends SuperEntity {
 	@OneToMany(mappedBy = "player")
 	private Set<Move> moves;
 
+	public void fault() {
+		nbFault++;
+	}
+
 }

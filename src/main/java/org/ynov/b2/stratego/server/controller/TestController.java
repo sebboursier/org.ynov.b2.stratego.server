@@ -14,11 +14,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.ynov.b2.stratego.server.jpa.model.Direction;
 import org.ynov.b2.stratego.server.jpa.model.Game;
 import org.ynov.b2.stratego.server.jpa.model.Move;
+import org.ynov.b2.stratego.server.jpa.model.MoveResult;
 import org.ynov.b2.stratego.server.jpa.model.PionType;
+import org.ynov.b2.stratego.server.jpa.model.Team;
 import org.ynov.b2.stratego.server.jpa.repository.GameRepository;
+import org.ynov.b2.stratego.server.jpa.repository.TeamRepository;
 import org.ynov.b2.stratego.server.service.BouchonService;
-import org.ynov.b2.stratego.server.socket.messager.GameMessenger;
-import org.ynov.b2.stratego.server.socket.messager.LobbyMessager;
+import org.ynov.b2.stratego.server.service.StrategoService;
+import org.ynov.b2.stratego.server.socket.messenger.GameMessenger;
+import org.ynov.b2.stratego.server.socket.messenger.LobbyMessenger;
 import org.ynov.b2.stratego.server.socket.model.StartGame;
 
 /**
@@ -33,7 +37,7 @@ public class TestController {
 	private BouchonService bouchonService;
 
 	@Autowired
-	private LobbyMessager lobbyMessager;
+	private LobbyMessenger lobbyMessager;
 
 	@Autowired
 	private GameMessenger gameMessenger;
@@ -41,12 +45,21 @@ public class TestController {
 	@Autowired
 	private GameRepository gameRepository;
 
+	@Autowired
+	private TeamRepository teamRepository;
+
+	@Autowired
+	private StrategoService strategoService;
+
 	@RequestMapping("newGame")
 	public HttpEntity<?> newGame() {
+		final Team test1 = teamRepository.getOne(-1);
+		final Team test2 = teamRepository.getOne(-2);
+
 		final PionType[][] pionsOne = bouchonService.generateStarter();
-		lobbyMessager.enter(-1, pionsOne);
+		lobbyMessager.enter(test1.getUuid(), pionsOne);
 		final PionType[][] pionsTwo = bouchonService.generateStarter();
-		final StartGame[] startGames = lobbyMessager.enter(-2, pionsTwo);
+		final StartGame[] startGames = lobbyMessager.enter(test2.getUuid(), pionsTwo);
 
 		gameMessenger.play(startGames[0].getIdPlayer(), new Move(0, 3, Direction.HAUT, 1));
 		gameMessenger.play(startGames[1].getIdPlayer(), new Move(0, 6, Direction.BAS, 1));
@@ -82,6 +95,29 @@ public class TestController {
 		// }
 		// }
 		gameRepository.save(game);
+
+		return new ResponseEntity(HttpStatus.OK);
+	}
+
+	@RequestMapping("randomGame")
+	public HttpEntity<?> randomGame() {
+		final Team test1 = teamRepository.getOne(-1);
+		final Team test2 = teamRepository.getOne(-2);
+
+		final PionType[][] pionsOne = bouchonService.generateStarter();
+		lobbyMessager.enter(test1.getUuid(), pionsOne);
+		final PionType[][] pionsTwo = bouchonService.generateStarter();
+		final StartGame[] startGames = lobbyMessager.enter(test2.getUuid(), pionsTwo);
+
+		Move move = new Move();
+		int turn = 0;
+		while (move == null || move.getResult() == null
+				|| (!move.getResult().equals(MoveResult.VICTORY) && !move.getResult().equals(MoveResult.DEFEAT))) {
+			final Integer idPlayer = startGames[turn % 2].getIdPlayer();
+			move = bouchonService.generateMove();
+			move = gameMessenger.play(idPlayer, move);
+			turn++;
+		}
 
 		return new ResponseEntity(HttpStatus.OK);
 	}

@@ -55,7 +55,6 @@ public class Move extends SuperEntity {
 		this.y = y;
 		this.direction = direction;
 		this.nb = nb;
-		this.date = new Date();
 	}
 
 }
