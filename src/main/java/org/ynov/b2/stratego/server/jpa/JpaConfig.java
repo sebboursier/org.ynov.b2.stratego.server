@@ -18,12 +18,14 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author sebboursier
  *
  */
 @Configuration
+@EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "org.ynov.b2.stratego.server.jpa.repository", entityManagerFactoryRef = "strategoEntityManager", transactionManagerRef = "strategoTransactionManager")
 public class JpaConfig {
 

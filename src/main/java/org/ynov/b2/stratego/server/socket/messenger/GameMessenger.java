@@ -5,13 +5,12 @@ package org.ynov.b2.stratego.server.socket.messenger;
 
 import java.util.Date;
 
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.ynov.b2.stratego.server.jpa.model.Game;
 import org.ynov.b2.stratego.server.jpa.model.Move;
 import org.ynov.b2.stratego.server.jpa.model.Player;
@@ -82,7 +81,6 @@ public class GameMessenger {
 		System.out.println(new Gson().toJson(turn));
 
 		simpMessagingTemplate.convertAndSend("/listen/game/" + player.getGame().getId(), turn);
-		iaService.play(game.getId(), turn);
 
 		return move;
 	}
