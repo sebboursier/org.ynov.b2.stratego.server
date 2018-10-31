@@ -26,9 +26,12 @@ public class Pion implements Serializable {
 
 	private boolean revelated;
 
+	private boolean hasMoved;
+
 	public Pion(final Integer num, final PionType type) {
 		this.num = num;
 		this.type = type;
 		revelated = false;
+		hasMoved = false;
 	}
 }

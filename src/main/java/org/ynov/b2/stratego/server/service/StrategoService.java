@@ -71,6 +71,7 @@ public class StrategoService {
 				throw new TurnException();
 			}
 
+			pion.setHasMoved(true);
 			final int targetX = move.getX() + move.getDirection().getX() * move.getNb();
 			final int targetY = move.getY() + move.getDirection().getY() * move.getNb();
 			Pion target = null;

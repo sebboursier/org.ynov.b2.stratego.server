@@ -47,4 +47,8 @@ public enum PionType {
 		this.nb = nb;
 	}
 
+	public boolean canMove() {
+		return force > 0;
+	}
+
 }

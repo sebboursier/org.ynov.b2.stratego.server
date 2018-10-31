@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.ynov.b2.stratego.server.service;
+package org.ynov.b2.stratego.server.service.ia;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -25,9 +25,12 @@ import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 import org.ynov.b2.stratego.server.jpa.model.MoveResult;
+import org.ynov.b2.stratego.server.jpa.model.PionType;
 import org.ynov.b2.stratego.server.jpa.model.Player;
 import org.ynov.b2.stratego.server.jpa.repository.PlayerRepository;
+import org.ynov.b2.stratego.server.service.BouchonService;
 import org.ynov.b2.stratego.server.socket.messenger.GameMessenger;
+import org.ynov.b2.stratego.server.socket.model.ReceiveTurn;
 import org.ynov.b2.stratego.server.socket.model.ResultTurn;
 import org.ynov.b2.stratego.server.socket.model.StartGame;
 
@@ -38,8 +41,7 @@ import org.ynov.b2.stratego.server.socket.model.StartGame;
 @Service
 public class IaService extends StompSessionHandlerAdapter {
 
-	private Map<Integer, Player> games = new HashMap<>();
-	private Map<Integer, Subscription> subscriptions = new HashMap<>();
+	private Map<Integer, IaInformations> informations = new HashMap<>();
 
 	@Autowired
 	private PlayerRepository playerRepository;
@@ -56,6 +58,21 @@ public class IaService extends StompSessionHandlerAdapter {
 	public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
 		System.out.println("CONNECTED");
 		this.session = session;
+	}
+
+	private ReceiveTurn chooseMove(Integer idGame) {
+		final IaInformations iaInformation = informations.get(idGame);
+		ReceiveTurn receiveTurn = null;
+
+		if (iaInformation.getReceiveTurnsPossibles().size() != 0) {
+			receiveTurn = iaInformation.getReceiveTurnsPossibles()
+					.get((int) (Math.random() * iaInformation.getReceiveTurnsPossibles().size()));
+			iaInformation.getReceiveTurnsPossibles().remove(receiveTurn);
+		} else {
+			receiveTurn = bouchonService.generateReceiveTurn(iaInformation.getPlayer());
+		}
+
+		return receiveTurn;
 	}
 
 	@EventListener(ApplicationReadyEvent.class)
@@ -92,25 +109,26 @@ public class IaService extends StompSessionHandlerAdapter {
 	}
 
 	private void play(final ResultTurn resultTurn) {
-		if (games.containsKey(resultTurn.getIdGame())) {
+		if (informations.containsKey(resultTurn.getIdGame())) {
 			if (resultTurn.getResult().equals(MoveResult.DEFEAT) || resultTurn.getResult().equals(MoveResult.VICTORY)
 					|| resultTurn.getResult().equals(MoveResult.SERVER_ERROR)) {
-				games.remove(resultTurn.getIdGame());
-				subscriptions.get(resultTurn.getIdGame()).unsubscribe();
-				subscriptions.remove(resultTurn.getIdGame());
+				informations.get(resultTurn.getIdGame()).getSubscription().unsubscribe();
+				informations.remove(resultTurn.getIdGame());
 			} else {
-				final Player player = games.get(resultTurn.getIdGame());
+				final Player player = informations.get(resultTurn.getIdGame()).getPlayer();
 				if (resultTurn.getTurn() % 2 != player.getNum()) {
-					gameMessenger.play(resultTurn.getIdGame(), bouchonService.generateReceiveTurn(player));
+					gameMessenger.play(resultTurn.getIdGame(), chooseMove(resultTurn.getIdGame()));
 				}
 			}
 		}
 	}
 
-	public void start(final StartGame startGame) {
+	public void start(final StartGame startGame, final PionType[][] starter) {
 		final Player player = playerRepository.findByGameIdAndTeamUuid(startGame.getIdGame(), startGame.getUuidTeam());
-		games.put(startGame.getIdGame(), player);
-		subscriptions.put(startGame.getIdGame(), session.subscribe("/listen/game/" + startGame.getIdGame(), this));
+		final Subscription subscription = session.subscribe("/listen/game/" + startGame.getIdGame(), this);
+
+		informations.put(startGame.getIdGame(), new IaInformations(player, subscription, starter));
+
 		if (startGame.getNum() == 0) {
 			final ResultTurn turn = new ResultTurn();
 			turn.setTurn(-1);
