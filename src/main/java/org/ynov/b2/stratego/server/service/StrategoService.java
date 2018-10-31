@@ -5,8 +5,8 @@ package org.ynov.b2.stratego.server.service;
 
 import java.util.Date;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.ynov.b2.stratego.server.jpa.model.FightResult;
 import org.ynov.b2.stratego.server.jpa.model.Game;
 import org.ynov.b2.stratego.server.jpa.model.Move;
@@ -14,7 +14,6 @@ import org.ynov.b2.stratego.server.jpa.model.MoveResult;
 import org.ynov.b2.stratego.server.jpa.model.Pion;
 import org.ynov.b2.stratego.server.jpa.model.PionType;
 import org.ynov.b2.stratego.server.jpa.model.Player;
-import org.ynov.b2.stratego.server.jpa.repository.GameRepository;
 import org.ynov.b2.stratego.server.util.exception.TurnException;
 
 /**
@@ -23,9 +22,6 @@ import org.ynov.b2.stratego.server.util.exception.TurnException;
  */
 @Service
 public class StrategoService {
-
-	@Autowired
-	private GameRepository gameRepository;
 
 	public void proceedFail(Move move) {
 		move.setResult(MoveResult.FAIL);
@@ -58,11 +54,17 @@ public class StrategoService {
 		}
 	}
 
+	@Transactional
 	public void proceedTurn(Move move) throws TurnException {
 		final Game game = move.getGame();
 
 		final Pion[][] board = game.getBoard();
-		final Pion pion = board[move.getX()][move.getY()];
+		Pion pion = null;
+		try {
+			pion = board[move.getX()][move.getY()];
+		} catch (IndexOutOfBoundsException e) {
+			throw new TurnException();
+		}
 
 		if (pion != null && pion.getType().getForce() > 0 && pion.getNum() == move.getPlayer().getNum()) {
 			if (move.getNb() < 1 || (move.getNb() > 1 && !pion.getType().equals(PionType.ECLAIREUR))) {
@@ -116,13 +118,13 @@ public class StrategoService {
 		game.setBoard(board);
 	}
 
-	public Game startGame(final Game game) {
+	public void startGame(final Game game, final Player... players) {
 		final Pion[][] pions = new Pion[10][10];
 		game.setBoard(pions);
 		game.setTurn(-1);
 		game.setDateStarted(new Date());
 
-		for (Player player : game.getPlayers()) {
+		for (Player player : players) {
 			for (int x = 0; x < 10; x++) {
 				for (int y = 0; y < 4; y++) {
 					final Pion pion = new Pion(player.getNum(), player.getPions()[x][y]);
@@ -147,10 +149,9 @@ public class StrategoService {
 		pions[7][4] = impassable;
 		pions[6][5] = impassable;
 		pions[7][5] = impassable;
-
-		return gameRepository.save(game);
 	}
 
+	@Transactional
 	public void watchEnd(Game game, Move move) {
 		if (move.getResult().equals(MoveResult.VICTORY)) {
 			game.setWinner(move.getPlayer());

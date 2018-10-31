@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.ynov.b2.stratego.server.jpa.model.Game;
 import org.ynov.b2.stratego.server.jpa.model.Move;
+import org.ynov.b2.stratego.server.jpa.model.MoveResult;
 import org.ynov.b2.stratego.server.jpa.model.Player;
 import org.ynov.b2.stratego.server.jpa.repository.GameRepository;
 import org.ynov.b2.stratego.server.jpa.repository.MoveRepository;
@@ -47,35 +48,45 @@ public class GameMessenger {
 	@Transactional
 	@MessageMapping("/game/{idGame}")
 	public ResultTurn play(final @DestinationVariable Integer idGame, final ReceiveTurn receiveTurn) {
-		Game game = gameRepository.getOne(idGame);
-		final Player player = playerRepository.findByGameIdAndTeamUuid(idGame, receiveTurn.getUuid());
-
-		System.out.println("##### " + player.getNum() + " / " + (game.getTurn() + 1));
-
-		if (game == null || player == null || game.getDateEnded() != null
-				|| Math.abs(game.getTurn() % 2) == player.getNum()) {
-			return null;
-		}
-
-		game.setTurn(game.getTurn() + 1);
-		Move move = new Move(receiveTurn, game, player);
-
 		try {
-			strategoService.proceedTurn(move);
-		} catch (TurnException e) {
-			strategoService.proceedFail(move);
+			Thread.sleep(100);
+			Game game = gameRepository.getOne(idGame);
+			final Player player = playerRepository.findByGameIdAndTeamUuid(idGame, receiveTurn.getUuid());
+
+			System.out.println("##### " + player.getNum() + " / " + (game.getTurn() + 1));
+
+			if (game == null || player == null || game.getDateEnded() != null
+					|| Math.abs(game.getTurn() % 2) == player.getNum()) {
+				System.out.println("THIS ISN'T YOUR TURN !");
+				return null;
+			}
+
+			game.setTurn(game.getTurn() + 1);
+			Move move = new Move(receiveTurn, game, player);
+
+			try {
+				strategoService.proceedTurn(move);
+			} catch (TurnException e) {
+				strategoService.proceedFail(move);
+			}
+
+			strategoService.watchEnd(game, move);
+			game = gameRepository.save(game);
+			move.setGame(game);
+			move = moveRepository.save(move);
+
+			final ResultTurn resultTurn = new ResultTurn(move);
+			System.out.println(new Gson().toJson(resultTurn));
+
+			Thread.sleep(100);
+
+			simpMessagingTemplate.convertAndSend("/listen/game/" + idGame, resultTurn);
+			return resultTurn;
+		} catch (Exception e) {
+			e.printStackTrace();
+			simpMessagingTemplate.convertAndSend("/listen/game/" + idGame, new ResultTurn(MoveResult.SERVER_ERROR));
 		}
-
-		strategoService.watchEnd(game, move);
-		game = gameRepository.save(game);
-		move.setGame(game);
-		move = moveRepository.save(move);
-
-		final ResultTurn resultTurn = new ResultTurn(move);
-		System.out.println(new Gson().toJson(resultTurn));
-
-		simpMessagingTemplate.convertAndSend("/listen/game/" + idGame, resultTurn);
-		return resultTurn;
+		return null;
 	}
 
 }

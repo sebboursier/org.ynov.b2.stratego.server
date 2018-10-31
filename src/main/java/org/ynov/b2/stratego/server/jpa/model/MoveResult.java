@@ -17,6 +17,8 @@ public enum MoveResult {
 
 	VICTORY,
 
-	DEFEAT;
+	DEFEAT,
+
+	SERVER_ERROR;
 
 }

@@ -31,10 +31,10 @@ public class Game extends SuperEntity {
 
 	private static final long serialVersionUID = 1L;
 
-	@OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "game", cascade = CascadeType.REMOVE)
 	private Set<Player> players;
 
-	@OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "game", cascade = CascadeType.REMOVE)
 	private Set<Move> moves;
 
 	private Date dateStarted;

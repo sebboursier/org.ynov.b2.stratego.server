@@ -44,4 +44,8 @@ public class ResultTurn {
 		idGame = move.getGame().getId();
 	}
 
+	public ResultTurn(final MoveResult moveResult) {
+		this.result = moveResult;
+	}
+
 }

@@ -16,6 +16,7 @@ import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.messaging.simp.stomp.StompSession.Subscription;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -38,6 +39,7 @@ import org.ynov.b2.stratego.server.socket.model.StartGame;
 public class IaService extends StompSessionHandlerAdapter {
 
 	private Map<Integer, Player> games = new HashMap<>();
+	private Map<Integer, Subscription> subscriptions = new HashMap<>();
 
 	@Autowired
 	private PlayerRepository playerRepository;
@@ -90,14 +92,15 @@ public class IaService extends StompSessionHandlerAdapter {
 	}
 
 	private void play(final ResultTurn resultTurn) {
-		System.out.println("IASERVICE START");
 		if (games.containsKey(resultTurn.getIdGame())) {
-			if (resultTurn.getResult().equals(MoveResult.DEFEAT) || resultTurn.getResult().equals(MoveResult.VICTORY)) {
+			if (resultTurn.getResult().equals(MoveResult.DEFEAT) || resultTurn.getResult().equals(MoveResult.VICTORY)
+					|| resultTurn.getResult().equals(MoveResult.SERVER_ERROR)) {
 				games.remove(resultTurn.getIdGame());
+				subscriptions.get(resultTurn.getIdGame()).unsubscribe();
+				subscriptions.remove(resultTurn.getIdGame());
 			} else {
 				final Player player = games.get(resultTurn.getIdGame());
 				if (resultTurn.getTurn() % 2 != player.getNum()) {
-					System.out.println("C A MOI");
 					gameMessenger.play(resultTurn.getIdGame(), bouchonService.generateReceiveTurn(player));
 				}
 			}
@@ -105,11 +108,9 @@ public class IaService extends StompSessionHandlerAdapter {
 	}
 
 	public void start(final StartGame startGame) {
-		System.out.println("COUCOUCOUCOUCOUCOCUOCU");
 		final Player player = playerRepository.findByGameIdAndTeamUuid(startGame.getIdGame(), startGame.getUuidTeam());
 		games.put(startGame.getIdGame(), player);
-		System.out.println("/listen/game/" + startGame.getIdGame());
-		session.subscribe("/listen/game/" + startGame.getIdGame(), this);
+		subscriptions.put(startGame.getIdGame(), session.subscribe("/listen/game/" + startGame.getIdGame(), this));
 		if (startGame.getNum() == 0) {
 			final ResultTurn turn = new ResultTurn();
 			turn.setTurn(-1);

@@ -11,7 +11,6 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-import org.hibernate.annotations.Proxy;
 import org.ynov.b2.stratego.server.util.converter.PionTypeArrayConverter;
 
 import lombok.Getter;
@@ -26,7 +25,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-@Proxy(lazy = false)
 public class Player extends SuperEntity {
 
 	private static final long serialVersionUID = 1L;
