@@ -3,8 +3,6 @@
  */
 package org.ynov.b2.stratego.server.socket.messenger;
 
-import java.util.Date;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -17,10 +15,9 @@ import org.ynov.b2.stratego.server.jpa.model.Player;
 import org.ynov.b2.stratego.server.jpa.repository.GameRepository;
 import org.ynov.b2.stratego.server.jpa.repository.MoveRepository;
 import org.ynov.b2.stratego.server.jpa.repository.PlayerRepository;
-import org.ynov.b2.stratego.server.service.IaService;
 import org.ynov.b2.stratego.server.service.StrategoService;
-import org.ynov.b2.stratego.server.socket.model.Turn;
-import org.ynov.b2.stratego.server.util.exception.NotMyTurnException;
+import org.ynov.b2.stratego.server.socket.model.ReceiveTurn;
+import org.ynov.b2.stratego.server.socket.model.ResultTurn;
 import org.ynov.b2.stratego.server.util.exception.TurnException;
 
 import com.google.gson.Gson;
@@ -47,42 +44,38 @@ public class GameMessenger {
 	@Autowired
 	private StrategoService strategoService;
 
-	@Autowired
-	private IaService iaService;
-
 	@Transactional
-	@MessageMapping("/game/{idPlayer}")
-	public Move play(@DestinationVariable Integer idPlayer, Move move) {
-		final Player player = playerRepository.getOne(idPlayer);
-		if (player.getGame().getDateEnded() != null) {
+	@MessageMapping("/game/{idGame}")
+	public ResultTurn play(final @DestinationVariable Integer idGame, final ReceiveTurn receiveTurn) {
+		Game game = gameRepository.getOne(idGame);
+		final Player player = playerRepository.findByGameIdAndTeamUuid(idGame, receiveTurn.getUuid());
+
+		System.out.println("##### " + player.getNum() + " / " + (game.getTurn() + 1));
+
+		if (game == null || player == null || game.getDateEnded() != null
+				|| Math.abs(game.getTurn() % 2) == player.getNum()) {
 			return null;
 		}
 
-		move.setTurn(player.getGame().getTurn());
-		move.setPlayer(player);
-		move.setGame(player.getGame());
-		move.setDate(new Date());
+		game.setTurn(game.getTurn() + 1);
+		Move move = new Move(receiveTurn, game, player);
 
 		try {
 			strategoService.proceedTurn(move);
-		} catch (NotMyTurnException e) {
-			return null;
 		} catch (TurnException e) {
 			strategoService.proceedFail(move);
 		}
 
-		final Game game = player.getGame();
 		strategoService.watchEnd(game, move);
-
-		game.setTurn(game.getTurn() + 1);
-		gameRepository.save(game);
+		game = gameRepository.save(game);
+		move.setGame(game);
 		move = moveRepository.save(move);
-		final Turn turn = new Turn(move);
-		System.out.println(new Gson().toJson(turn));
 
-		simpMessagingTemplate.convertAndSend("/listen/game/" + player.getGame().getId(), turn);
+		final ResultTurn resultTurn = new ResultTurn(move);
+		System.out.println(new Gson().toJson(resultTurn));
 
-		return move;
+		simpMessagingTemplate.convertAndSend("/listen/game/" + idGame, resultTurn);
+		return resultTurn;
 	}
 
 }

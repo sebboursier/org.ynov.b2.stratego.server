@@ -27,8 +27,8 @@ import org.ynov.b2.stratego.server.jpa.model.MoveResult;
 import org.ynov.b2.stratego.server.jpa.model.Player;
 import org.ynov.b2.stratego.server.jpa.repository.PlayerRepository;
 import org.ynov.b2.stratego.server.socket.messenger.GameMessenger;
+import org.ynov.b2.stratego.server.socket.model.ResultTurn;
 import org.ynov.b2.stratego.server.socket.model.StartGame;
-import org.ynov.b2.stratego.server.socket.model.Turn;
 
 /**
  * @author sebboursier
@@ -37,7 +37,7 @@ import org.ynov.b2.stratego.server.socket.model.Turn;
 @Service
 public class IaService extends StompSessionHandlerAdapter {
 
-	private Map<Integer, Integer> games = new HashMap<>();
+	private Map<Integer, Player> games = new HashMap<>();
 
 	@Autowired
 	private PlayerRepository playerRepository;
@@ -67,7 +67,7 @@ public class IaService extends StompSessionHandlerAdapter {
 
 	@Override
 	public Type getPayloadType(StompHeaders headers) {
-		return Turn.class;
+		return ResultTurn.class;
 	}
 
 	@Override
@@ -79,7 +79,7 @@ public class IaService extends StompSessionHandlerAdapter {
 
 	@Override
 	public void handleFrame(StompHeaders headers, Object payload) {
-		final Turn turn = (Turn) payload;
+		final ResultTurn turn = (ResultTurn) payload;
 		play(turn);
 	}
 
@@ -89,24 +89,29 @@ public class IaService extends StompSessionHandlerAdapter {
 		exception.printStackTrace();
 	}
 
-	private void play(final Turn turn) {
-		if (games.containsKey(turn.getIdGame())) {
-			if (turn.getResult().equals(MoveResult.DEFEAT) || turn.getResult().equals(MoveResult.VICTORY)) {
-				games.remove(turn.getIdGame());
+	private void play(final ResultTurn resultTurn) {
+		System.out.println("IASERVICE START");
+		if (games.containsKey(resultTurn.getIdGame())) {
+			if (resultTurn.getResult().equals(MoveResult.DEFEAT) || resultTurn.getResult().equals(MoveResult.VICTORY)) {
+				games.remove(resultTurn.getIdGame());
 			} else {
-				final Player player = playerRepository.getOne(games.get(turn.getIdGame()));
-				if (turn.getTurn() % 2 != player.getNum()) {
-					gameMessenger.play(player.getId(), bouchonService.generateMove());
+				final Player player = games.get(resultTurn.getIdGame());
+				if (resultTurn.getTurn() % 2 != player.getNum()) {
+					System.out.println("C A MOI");
+					gameMessenger.play(resultTurn.getIdGame(), bouchonService.generateReceiveTurn(player));
 				}
 			}
 		}
 	}
 
 	public void start(final StartGame startGame) {
-		games.put(startGame.getIdGame(), startGame.getIdPlayer());
+		System.out.println("COUCOUCOUCOUCOUCOCUOCU");
+		final Player player = playerRepository.findByGameIdAndTeamUuid(startGame.getIdGame(), startGame.getUuidTeam());
+		games.put(startGame.getIdGame(), player);
+		System.out.println("/listen/game/" + startGame.getIdGame());
 		session.subscribe("/listen/game/" + startGame.getIdGame(), this);
 		if (startGame.getNum() == 0) {
-			final Turn turn = new Turn();
+			final ResultTurn turn = new ResultTurn();
 			turn.setTurn(-1);
 			turn.setIdGame(startGame.getIdGame());
 			handleFrame(null, turn);

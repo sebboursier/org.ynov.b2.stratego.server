@@ -6,6 +6,8 @@ package org.ynov.b2.stratego.server.socket.messenger;
 import java.util.Date;
 import java.util.HashSet;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -68,8 +70,6 @@ public class LobbyMessenger {
 		}
 
 		Game game = new Game();
-		game.setTurn(0);
-		game.setDateStarted(new Date());
 		game.setPlayers(new HashSet<>());
 
 		Player playerOne = new Player();
@@ -88,10 +88,10 @@ public class LobbyMessenger {
 
 		game = strategoService.startGame(game);
 
-		final StartGame startOne = new StartGame(game.getId(), playerOne.getId(), 0);
+		final StartGame startOne = new StartGame(game.getId(), playerOne.getTeam().getUuid(), 0);
 		simpMessagingTemplate.convertAndSend("/listen/lobby/" + teamInLobby.getUuid(), startOne);
 
-		final StartGame startTwo = new StartGame(game.getId(), playerTwo.getId(), 1);
+		final StartGame startTwo = new StartGame(game.getId(), playerTwo.getTeam().getUuid(), 1);
 		simpMessagingTemplate.convertAndSend("/listen/lobby/" + uuidTeam, startTwo);
 
 		teamInLobbyRepository.delete(teamInLobby);
@@ -99,11 +99,10 @@ public class LobbyMessenger {
 		return new StartGame[] { startOne, startTwo };
 	}
 
+	@Transactional
 	@MessageMapping("/lobby/{uuidTeam}/test")
 	public StartGame[] enterTest(@DestinationVariable String uuidTeam, PionType[][] pions) {
 		Game game = new Game();
-		game.setTurn(0);
-		game.setDateStarted(new Date());
 		game.setPlayers(new HashSet<>());
 
 		Player playerOne = new Player();
@@ -122,10 +121,11 @@ public class LobbyMessenger {
 
 		game = strategoService.startGame(game);
 
-		final StartGame startOne = new StartGame(game.getId(), playerOne.getId(), 0);
+		final StartGame startOne = new StartGame(game.getId(), playerOne.getTeam().getUuid(), 0);
 		simpMessagingTemplate.convertAndSend("/listen/lobby/" + uuidTeam, startOne);
 
-		final StartGame startTwo = new StartGame(game.getId(), playerTwo.getId(), 1);
+		System.out.println(playerTwo.getTeam());
+		final StartGame startTwo = new StartGame(game.getId(), playerTwo.getTeam().getUuid(), 1);
 		iaService.start(startTwo);
 
 		return new StartGame[] { startOne, startTwo };

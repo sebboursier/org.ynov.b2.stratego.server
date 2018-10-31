@@ -9,8 +9,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.ynov.b2.stratego.server.jpa.model.Direction;
-import org.ynov.b2.stratego.server.jpa.model.Move;
 import org.ynov.b2.stratego.server.jpa.model.PionType;
+import org.ynov.b2.stratego.server.jpa.model.Player;
+import org.ynov.b2.stratego.server.socket.model.ReceiveTurn;
 
 /**
  * @author sebboursier
@@ -19,9 +20,9 @@ import org.ynov.b2.stratego.server.jpa.model.PionType;
 @Service
 public class BouchonService {
 
-	public Move generateMove() {
-		final Move move = new Move((int) (Math.random() * 10), (int) (Math.random() * 10),
-				Direction.values()[(int) (Math.random() * 4)], 1);
+	public ReceiveTurn generateReceiveTurn(final Player player) {
+		final ReceiveTurn move = new ReceiveTurn((int) (Math.random() * 10), (int) (Math.random() * 10),
+				Direction.values()[(int) (Math.random() * 4)], 1, player.getTeam().getUuid());
 		return move;
 	}
 

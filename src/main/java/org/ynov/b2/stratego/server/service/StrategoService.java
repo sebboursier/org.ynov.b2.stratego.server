@@ -15,7 +15,6 @@ import org.ynov.b2.stratego.server.jpa.model.Pion;
 import org.ynov.b2.stratego.server.jpa.model.PionType;
 import org.ynov.b2.stratego.server.jpa.model.Player;
 import org.ynov.b2.stratego.server.jpa.repository.GameRepository;
-import org.ynov.b2.stratego.server.util.exception.NotMyTurnException;
 import org.ynov.b2.stratego.server.util.exception.TurnException;
 
 /**
@@ -60,19 +59,12 @@ public class StrategoService {
 	}
 
 	public void proceedTurn(Move move) throws TurnException {
-		final Integer numPlayer = move.getPlayer().getNum();
-		final Integer turn = move.getTurn();
-		final Integer nbPlayers = move.getPlayer().getGame().getPlayers().size();
-		if (turn % nbPlayers != numPlayer) {
-			throw new NotMyTurnException();
-		}
-
-		final Game game = move.getPlayer().getGame();
+		final Game game = move.getGame();
 
 		final Pion[][] board = game.getBoard();
 		final Pion pion = board[move.getX()][move.getY()];
 
-		if (pion != null && pion.getType().getForce() > 0 && pion.getNum() == numPlayer) {
+		if (pion != null && pion.getType().getForce() > 0 && pion.getNum() == move.getPlayer().getNum()) {
 			if (move.getNb() < 1 || (move.getNb() > 1 && !pion.getType().equals(PionType.ECLAIREUR))) {
 				throw new TurnException();
 			}
@@ -122,12 +114,13 @@ public class StrategoService {
 		}
 
 		game.setBoard(board);
-		gameRepository.save(game);
 	}
 
 	public Game startGame(final Game game) {
 		final Pion[][] pions = new Pion[10][10];
 		game.setBoard(pions);
+		game.setTurn(-1);
+		game.setDateStarted(new Date());
 
 		for (Player player : game.getPlayers()) {
 			for (int x = 0; x < 10; x++) {

@@ -18,7 +18,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Turn {
+public class ResultTurn {
 
 	private Integer idGame;
 
@@ -34,7 +34,7 @@ public class Turn {
 
 	private MoveResult result;
 
-	public Turn(final Move move) {
+	public ResultTurn(final Move move) {
 		turn = move.getTurn();
 		x = move.getX();
 		y = move.getY();

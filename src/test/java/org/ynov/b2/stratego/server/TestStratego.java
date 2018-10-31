@@ -15,7 +15,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.ynov.b2.stratego.server.jpa.model.Direction;
 import org.ynov.b2.stratego.server.jpa.model.FightResult;
 import org.ynov.b2.stratego.server.jpa.model.Game;
-import org.ynov.b2.stratego.server.jpa.model.Move;
 import org.ynov.b2.stratego.server.jpa.model.MoveResult;
 import org.ynov.b2.stratego.server.jpa.model.PionType;
 import org.ynov.b2.stratego.server.jpa.model.Player;
@@ -30,6 +29,8 @@ import org.ynov.b2.stratego.server.service.BouchonService;
 import org.ynov.b2.stratego.server.service.StrategoService;
 import org.ynov.b2.stratego.server.socket.messenger.GameMessenger;
 import org.ynov.b2.stratego.server.socket.messenger.LobbyMessenger;
+import org.ynov.b2.stratego.server.socket.model.ReceiveTurn;
+import org.ynov.b2.stratego.server.socket.model.ResultTurn;
 import org.ynov.b2.stratego.server.socket.model.StartGame;
 
 /**
@@ -91,13 +92,14 @@ public class TestStratego {
 		final PionType[][] pionsTwo = bouchonService.generateStarter();
 		final StartGame[] startGames = lobbyMessager.enter(uuidTwo, pionsTwo);
 
-		Move move = new Move();
+		ResultTurn resultTurn = new ResultTurn();
 		for (int i = 0; i < 9; i++) {
-			Assert.assertNotEquals(MoveResult.DEFEAT, move.getResult());
-			final Integer idPlayer = startGames[i % 2].getIdPlayer();
-			move = gameMessenger.play(idPlayer, new Move(0, 0, Direction.BAS, 1));
+			Assert.assertNotEquals(MoveResult.DEFEAT, resultTurn.getResult());
+			final StartGame startGame = startGames[i % 2];
+			resultTurn = gameMessenger.play(startGame.getIdGame(),
+					new ReceiveTurn(0, 0, Direction.BAS, 1, startGame.getUuidTeam()));
 		}
-		Assert.assertEquals(MoveResult.DEFEAT, move.getResult());
+		Assert.assertEquals(MoveResult.DEFEAT, resultTurn.getResult());
 	}
 
 	@Test
@@ -156,7 +158,8 @@ public class TestStratego {
 		final PionType[][] pionsTwo = bouchonService.generateStarter();
 		final StartGame[] startGames = lobbyMessager.enter(uuidTwo, pionsTwo);
 
-		Move result = gameMessenger.play(startGames[1].getIdPlayer(), new Move(0, 0, Direction.HAUT, 1));
+		ResultTurn result = gameMessenger.play(startGames[1].getIdGame(),
+				new ReceiveTurn(0, 0, Direction.HAUT, 1, startGames[1].getUuidTeam()));
 
 		Assert.assertNull(result);
 	}
@@ -169,7 +172,8 @@ public class TestStratego {
 		final PionType[][] pionsTwo = bouchonService.generateStarter();
 		final StartGame[] startGames = lobbyMessager.enter(uuidTwo, pionsTwo);
 
-		Move move = gameMessenger.play(startGames[0].getIdPlayer(), new Move(0, 0, Direction.HAUT, 1));
+		ResultTurn move = gameMessenger.play(startGames[0].getIdGame(),
+				new ReceiveTurn(0, 0, Direction.HAUT, 1, startGames[0].getUuidTeam()));
 
 		Assert.assertNotNull(move);
 		Assert.assertEquals(MoveResult.FAIL, move.getResult());
@@ -184,7 +188,8 @@ public class TestStratego {
 		final PionType[][] pionsTwo = bouchonService.generateStarter();
 		final StartGame[] startGames = lobbyMessager.enter(uuidTwo, pionsTwo);
 
-		Move move = gameMessenger.play(startGames[0].getIdPlayer(), new Move(0, 3, Direction.HAUT, 1));
+		ResultTurn move = gameMessenger.play(startGames[0].getIdGame(),
+				new ReceiveTurn(0, 3, Direction.HAUT, 1, startGames[0].getUuidTeam()));
 
 		Assert.assertNotNull(move);
 		Assert.assertEquals(MoveResult.MOVE, move.getResult());

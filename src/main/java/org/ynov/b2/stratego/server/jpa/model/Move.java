@@ -10,6 +10,8 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 
+import org.ynov.b2.stratego.server.socket.model.ReceiveTurn;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -50,11 +52,15 @@ public class Move extends SuperEntity {
 
 	private Date date;
 
-	public Move(int x, int y, final Direction direction, int nb) {
-		this.x = x;
-		this.y = y;
-		this.direction = direction;
-		this.nb = nb;
+	public Move(final ReceiveTurn receiveTurn, final Game game, final Player player) {
+		this.x = receiveTurn.getX();
+		this.y = receiveTurn.getY();
+		this.direction = receiveTurn.getDirection();
+		this.nb = receiveTurn.getNb();
+		this.game = game;
+		this.player = player;
+		this.turn = game.getTurn();
+		date = new Date();
 	}
 
 }
